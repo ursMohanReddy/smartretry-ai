@@ -2,23 +2,16 @@
 const Transaction = require('../models/Transaction');
 const { evaluateTransaction } = require('./errorClassifier');
 
-// The Global Circuit Breaker Registry
-// If a bank fails repeatedly, we flip this to 'true' to protect their servers.
 const bankOutageRegistry = {
   'HDFC': { isKilled: false },
   'SBI': { isKilled: false },
   'ICICI': { isKilled: false }
 };
 
-/**
- * SmartRetry AI - Step 2: Bounded Retry & Circuit Breaker Execution
- */
 async function processRecoveryAttempt(transactionId) {
-  // 1. Fetch the transaction from the database
   const transaction = await Transaction.findOne({ transactionId });
   if (!transaction) throw new Error('Transaction not found');
 
-  // 2. Check the Global Circuit Breaker First (Safety Check)
   const bank = transaction.bankName;
   if (bankOutageRegistry[bank] && bankOutageRegistry[bank].isKilled) {
     transaction.status = 'CIRCUIT_BREAKER_BLOCKED';
@@ -30,7 +23,6 @@ async function processRecoveryAttempt(transactionId) {
     return { status: 'BLOCKED', message: `Circuit breaker active for ${bank}` };
   }
 
-  // 3. Enforce the Strict 3-Retry Cap (Safety Check)
   if (transaction.retryCount >= 3) {
     transaction.status = 'PERMANENTLY_FAILED';
     transaction.logs.push({
@@ -41,19 +33,16 @@ async function processRecoveryAttempt(transactionId) {
     return { status: 'FAILED', message: 'Max 3 retry limit reached.' };
   }
 
-  // 4. Run the AI Error Classifier from Step 1
   const agentAnalysis = evaluateTransaction(transaction);
-  
-  // Update transaction with the agent's findings
   transaction.recoveryScore = agentAnalysis.confidence;
   transaction.retryCount += 1;
-  
-  // 5. Execute Decision Logic based on Confidence
+
   if (agentAnalysis.confidence >= 50) {
-    transaction.status = 'RETRY_SCHEDULED';
+    // Simulate the retry executing now and succeeding
+    transaction.status = 'RECOVERED';
     transaction.logs.push({
-      action: 'RETRY_SCHEDULED',
-      details: `Confidence ${agentAnalysis.confidence}%. Strategy: ${agentAnalysis.strategy}`
+      action: 'RECOVERED',
+      details: `Retry succeeded. Confidence ${agentAnalysis.confidence}%. Strategy: ${agentAnalysis.strategy}`
     });
   } else {
     transaction.status = 'PERMANENTLY_FAILED';
@@ -70,11 +59,11 @@ async function processRecoveryAttempt(transactionId) {
     diagnosis: agentAnalysis.diagnosis,
     confidence: agentAnalysis.confidence,
     attemptNumber: transaction.retryCount,
-    actionTaken: transaction.status
+    actionTaken: transaction.status,
+    customerMessage: agentAnalysis.customerMessage
   };
 }
 
-// Helper function to manually trip the circuit breaker for the demo
 function tripCircuitBreaker(bankName) {
   if (bankOutageRegistry[bankName]) {
     bankOutageRegistry[bankName].isKilled = true;
