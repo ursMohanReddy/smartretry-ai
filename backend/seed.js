@@ -10,10 +10,14 @@ async function seed() {
   await Transaction.deleteMany({});
 
   const mockTxns = [];
-  for (let i = 1; i <= 18; i++) {
+  for (let i = 1; i <= 20; i++) {
     const bank = banks[Math.floor(Math.random() * banks.length)];
     const errorCode = errors[Math.floor(Math.random() * errors.length)];
-    const amount = Math.floor(Math.random() * 15000) + 300;
+
+    // Mix of amounts - some large (naturally lower confidence/recovery chance)
+    const amount = Math.random() < 0.25
+      ? Math.floor(Math.random() * 20000) + 15000  // occasional large amount
+      : Math.floor(Math.random() * 12000) + 300;
 
     mockTxns.push({
       transactionId: `TXN${1000 + i}`,
@@ -25,7 +29,7 @@ async function seed() {
   }
 
   await Transaction.insertMany(mockTxns);
-  console.log(`✅ Seeded ${mockTxns.length} mock transactions`);
+  console.log(`✅ Seeded ${mockTxns.length} realistic mock transactions`);
   mongoose.disconnect();
 }
 

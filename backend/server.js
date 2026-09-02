@@ -50,6 +50,7 @@ app.post('/api/recover-all', async (req, res) => {
   for (const txn of failedTxns) {
     const result = await processRecoveryAttempt(txn.transactionId);
     results.push({ transactionId: txn.transactionId, ...result });
+    await new Promise(resolve => setTimeout(resolve, 1500)); // avoid Razorpay rate limit
   }
   res.json({ processedCount: results.length, results });
 });

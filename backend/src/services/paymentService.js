@@ -13,7 +13,7 @@ async function createPaymentLink(transaction) {
       amount: transaction.amount * 100, // Razorpay expects paise, not rupees
       currency: 'INR',
       description: `Retry payment for order - ${transaction.transactionId}`,
-      reference_id: transaction.transactionId,
+            reference_id: `${transaction.transactionId}-${Date.now()}`,
       notify: {
         sms: false,
         email: false
@@ -22,7 +22,7 @@ async function createPaymentLink(transaction) {
 
     return paymentLink.short_url;
   } catch (err) {
-    console.error('Razorpay payment link error:', err.message);
+    console.error('Razorpay payment link FULL error:', JSON.stringify(err, null, 2));
     return null;
   }
 }
