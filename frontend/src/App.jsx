@@ -10,6 +10,7 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [circuitBreakers, setCircuitBreakers] = useState([]);
 
   const fetchTransactions = async () => {
     try {
@@ -40,11 +41,37 @@ function App() {
       console.error(error);
     }
   };
+  const fetchCircuitBreakers = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/circuit-breakers`);
+    const data = await res.json();
+    setCircuitBreakers(data.breakers || []);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const toggleCircuitBreaker = async (bank, isBlocked) => {
+  try {
+    const endpoint = isBlocked
+      ? `/api/circuit-breaker/${bank}/reset`
+      : `/api/circuit-breaker/${bank}`;
+
+    await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+    });
+
+    await fetchCircuitBreakers();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   useEffect(() => {
     fetchTransactions();
     fetchLogs();
     fetchAnalytics();
+    fetchCircuitBreakers();
   }, []);
 
   const runRecoveryAgent = async () => {
@@ -907,29 +934,35 @@ function App() {
 
     <div className="circuit-grid">
 
-      {['HDFC', 'SBI', 'ICICI'].map((bank) => {
+      {circuitBreakers.map((breaker) => {
 
         const bankData = analytics?.banks?.find(
-          (item) => item.bank === bank
+          (item) => item.bank === breaker.bank
         );
 
         return (
-          <div className="circuit-card" key={bank}>
+          <div className="circuit-card" key={breaker.bank}>
 
             <div className="circuit-card-top">
+
               <div className="bank-circle">
-                {bank.charAt(0)}
+                {breaker.bank.charAt(0)}
               </div>
 
-              <span className="healthy-badge">
-                ● HEALTHY
+              <span className={
+                breaker.isBlocked
+                  ? 'blocked-badge'
+                  : 'healthy-badge'
+              }>
+                ● {breaker.isBlocked ? 'BLOCKED' : 'HEALTHY'}
               </span>
+
             </div>
 
-            <h3>{bank}</h3>
+            <h3>{breaker.bank}</h3>
 
             <p className="circuit-subtitle">
-              Payment gateway connection
+              Payment gateway protection
             </p>
 
             <div className="circuit-stats">
@@ -941,32 +974,57 @@ function App() {
 
               <div>
                 <span>Recovery Rate</span>
-                <strong>
-                  {bankData?.recoveryRate || 0}%
-                </strong>
+                <strong>{bankData?.recoveryRate || 0}%</strong>
               </div>
 
             </div>
 
             <div className="circuit-status">
+
               <div className="status-line">
                 <span>Current Status</span>
-                <strong>Accepting Requests</strong>
+
+                <strong className={
+                  breaker.isBlocked
+                    ? 'blocked-text'
+                    : 'healthy-text'
+                }>
+                  {breaker.isBlocked
+                    ? 'Recovery Paused'
+                    : 'Accepting Requests'}
+                </strong>
               </div>
 
               <div className="health-bar">
                 <div
-                  className="health-fill"
-                  style={{
-                    width: `${
-                      bankData?.recoveryRate > 0
-                        ? bankData.recoveryRate
-                        : 100
-                    }%`
-                  }}
+                  className={
+                    breaker.isBlocked
+                      ? 'health-fill blocked-fill'
+                      : 'health-fill'
+                  }
+                  style={{ width: '100%' }}
                 ></div>
               </div>
+
             </div>
+
+            <button
+              className={
+                breaker.isBlocked
+                  ? 'reset-breaker-btn'
+                  : 'trip-breaker-btn'
+              }
+              onClick={() =>
+                toggleCircuitBreaker(
+                  breaker.bank,
+                  breaker.isBlocked
+                )
+              }
+            >
+              {breaker.isBlocked
+                ? 'Reset Circuit Breaker'
+                : 'Trip Circuit Breaker'}
+            </button>
 
           </div>
         );

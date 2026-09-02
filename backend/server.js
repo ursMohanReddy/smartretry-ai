@@ -7,6 +7,8 @@ const Transaction = require('./src/models/Transaction');
 const {
   processRecoveryAttempt,
   tripCircuitBreaker,
+  resetCircuitBreaker,
+  getCircuitBreakers,
 } = require('./src/services/retryEngine');
 
 const app = express();
@@ -266,7 +268,26 @@ app.post('/api/circuit-breaker/:bank', (req, res) => {
     message,
   });
 });
+// Get all circuit breaker states
+app.get('/api/circuit-breakers', (req, res) => {
+  const breakers = getCircuitBreakers();
 
+  res.json({
+    success: true,
+    breakers,
+  });
+});
+
+
+// Reset circuit breaker
+app.post('/api/circuit-breaker/:bank/reset', (req, res) => {
+  const message = resetCircuitBreaker(req.params.bank);
+
+  res.json({
+    success: true,
+    message,
+  });
+});
 
 // Full audit log
 app.get('/api/audit-log', async (req, res) => {

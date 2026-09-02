@@ -1253,3 +1253,55 @@ td {
     gap: 12px;
   }
 }
+.blocked-badge {
+  color: #FF7272;
+  background: rgba(255, 82, 82, 0.1);
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.healthy-text {
+  color: #4EC98F;
+}
+
+.blocked-text {
+  color: #FF7272;
+}
+
+.blocked-fill {
+  background: #FF7272 !important;
+}
+
+.trip-breaker-btn,
+.reset-breaker-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.trip-breaker-btn {
+  background: rgba(255, 82, 82, 0.08);
+  border: 1px solid rgba(255, 82, 82, 0.35);
+  color: #FF7272;
+}
+
+.trip-breaker-btn:hover {
+  background: rgba(255, 82, 82, 0.16);
+}
+
+.reset-breaker-btn {
+  background: rgba(78, 201, 143, 0.08);
+  border: 1px solid rgba(78, 201, 143, 0.35);
+  color: #4EC98F;
+}
+
+.reset-breaker-btn:hover {
+  background: rgba(78, 201, 143, 0.16);
+}

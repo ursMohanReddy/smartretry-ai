@@ -232,8 +232,27 @@ function tripCircuitBreaker(bankName) {
 
   return 'Bank not found in registry.';
 }
+function resetCircuitBreaker(bankName) {
+  if (bankOutageRegistry[bankName]) {
+    bankOutageRegistry[bankName].isKilled = false;
+
+    return `${bankName} circuit breaker reset. Automated recovery resumed.`;
+  }
+
+  return 'Bank not found in registry.';
+}
+
+function getCircuitBreakers() {
+  return Object.entries(bankOutageRegistry).map(([bank, data]) => ({
+    bank,
+    status: data.isKilled ? 'OPEN' : 'CLOSED',
+    isBlocked: data.isKilled,
+  }));
+}
 
 module.exports = {
   processRecoveryAttempt,
   tripCircuitBreaker,
+  resetCircuitBreaker,
+  getCircuitBreakers,
 };
