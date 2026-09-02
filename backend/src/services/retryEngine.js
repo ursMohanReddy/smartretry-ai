@@ -1,6 +1,7 @@
 // backend/src/services/retryEngine.js
 const Transaction = require('../models/Transaction');
 const { evaluateTransaction } = require('./errorClassifier');
+const { createPaymentLink } = require('./paymentService');
 
 const bankOutageRegistry = {
   'HDFC': { isKilled: false },
@@ -36,6 +37,12 @@ async function processRecoveryAttempt(transactionId) {
   const agentAnalysis = evaluateTransaction(transaction);
   transaction.recoveryScore = agentAnalysis.confidence;
   transaction.retryCount += 1;
+
+  // Generate a real Razorpay payment link and insert it into the message
+  const realPaymentLink = await createPaymentLink(transaction);
+  if (realPaymentLink) {
+    agentAnalysis.customerMessage = agentAnalysis.customerMessage.replace('[PAYMENT_LINK]', realPaymentLink);
+  }
 
   if (agentAnalysis.confidence >= 50) {
     // Simulate the retry executing now and succeeding
