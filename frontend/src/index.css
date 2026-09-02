@@ -109,3 +109,18 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+.message-row td {
+  background: rgba(232, 163, 61, 0.06);
+  padding: 10px 8px;
+  font-size: 12.5px;
+  color: #C9CDD6;
+  border-bottom: 1px solid #232B39;
+  font-style: italic;
+}
+
+.message-label {
+  color: #E8A33D;
+  font-weight: 600;
+  font-style: normal;
+  margin-right: 4px;
+}

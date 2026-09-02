@@ -36,6 +36,7 @@ async function processRecoveryAttempt(transactionId) {
 
   const agentAnalysis = evaluateTransaction(transaction);
   transaction.recoveryScore = agentAnalysis.confidence;
+  transaction.lastCustomerMessage = agentAnalysis.customerMessage;
   transaction.retryCount += 1;
 
   // Generate a real Razorpay payment link and insert it into the message
@@ -43,6 +44,7 @@ async function processRecoveryAttempt(transactionId) {
   if (realPaymentLink) {
     agentAnalysis.customerMessage = agentAnalysis.customerMessage.replace('[PAYMENT_LINK]', realPaymentLink);
   }
+    transaction.lastCustomerMessage = agentAnalysis.customerMessage;
 
   if (agentAnalysis.confidence >= 50) {
     // Simulate the retry executing now and succeeding

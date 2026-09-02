@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import './App.css';
 
 const API_BASE = 'http://localhost:5000';
@@ -66,7 +66,7 @@ function App() {
         </div>
         <div className="stat-card">
           <p>Revenue Recovered</p>
-          <h2>₹{revenueRecovered.toLocaleString('en-IN')}</h2>
+          <h2>&#8377;{revenueRecovered.toLocaleString('en-IN')}</h2>
         </div>
         <div className="stat-card">
           <p>Recovery Rate</p>
@@ -91,15 +91,24 @@ function App() {
             </thead>
             <tbody>
               {transactions.map(t => (
-                <tr key={t._id} className={`status-${t.status}`}>
-                  <td>{t.transactionId}</td>
-                  <td>₹{t.amount.toLocaleString('en-IN')}</td>
-                  <td>{t.bankName}</td>
-                  <td>{t.errorCode}</td>
-                  <td><span className="status-pill">{t.status.replace(/_/g, ' ')}</span></td>
-                  <td>{t.retryCount}/3</td>
-                  <td>{t.recoveryScore || '-'}</td>
-                </tr>
+                <Fragment key={t._id}>
+                  <tr className={`status-${t.status}`}>
+                    <td>{t.transactionId}</td>
+                    <td>&#8377;{t.amount.toLocaleString('en-IN')}</td>
+                    <td>{t.bankName}</td>
+                    <td>{t.errorCode}</td>
+                    <td><span className="status-pill">{t.status.replace(/_/g, ' ')}</span></td>
+                    <td>{t.retryCount}/3</td>
+                    <td>{t.recoveryScore || '-'}</td>
+                  </tr>
+                  {t.lastCustomerMessage ? (
+                    <tr className="message-row">
+                      <td colSpan="7">
+                        <span className="message-label">Customer message sent:</span> {t.lastCustomerMessage}
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -113,7 +122,7 @@ function App() {
                 <span className="log-time">
                   {new Date(log.timestamp).toLocaleTimeString()}
                 </span>
-                — <strong>{log.transactionId}</strong>: {log.details}
+                {' '}— <strong>{log.transactionId}</strong>: {log.details}
               </div>
             ))}
           </div>

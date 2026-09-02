@@ -17,6 +17,7 @@ const transactionSchema = new mongoose.Schema({
   },
   retryCount: { type: Number, default: 0, max: 3 },
   recoveryScore: { type: Number, default: 0 },
+  lastCustomerMessage: { type: String, default: '' },
   logs: [{
     action: String,
     timestamp: { type: Date, default: Date.now },
