@@ -88,6 +88,17 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    decisionTrace: [
+  {
+    step: String,
+    status: String,
+    details: String,
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
 
     logs: [
       {

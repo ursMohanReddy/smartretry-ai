@@ -7,6 +7,7 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [expandedTrace, setExpandedTrace] = useState(null);
 
   const fetchTransactions = async () => {
     const res = await fetch(`${API_BASE}/api/transactions`);
@@ -33,41 +34,61 @@ function App() {
     setLoading(false);
   };
 
-  const totalFailed = transactions.length;
-  const recovered = transactions.filter(t => t.status === 'RECOVERED').length;
+  const totalTransactions = transactions.length;
+
+  const recovered = transactions.filter(
+    t => t.status === 'RECOVERED'
+  ).length;
+
   const revenueRecovered = transactions
     .filter(t => t.status === 'RECOVERED')
     .reduce((sum, t) => sum + t.amount, 0);
-  const recoveryRate = totalFailed ? Math.round((recovered / totalFailed) * 100) : 0;
+
+  const recoveryRate = totalTransactions
+    ? Math.round((recovered / totalTransactions) * 100)
+    : 0;
 
   return (
     <div className="dashboard">
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark"></div>
+
           <div>
             <h1>SmartRetry AI</h1>
-            <p className="subtitle">Revenue recovery for failed payments</p>
+            <p className="subtitle">
+              Autonomous revenue recovery for failed payments
+            </p>
           </div>
         </div>
-        <button className="trigger-btn" onClick={runRecoveryAgent} disabled={loading}>
-          {loading ? 'Running...' : 'Run Recovery Agent'}
+
+        <button
+          className="trigger-btn"
+          onClick={runRecoveryAgent}
+          disabled={loading}
+        >
+          {loading ? 'Agent Running...' : 'Run Recovery Agent'}
         </button>
       </header>
 
       <section className="stats">
         <div className="stat-card">
-          <p>Total Failed</p>
-          <h2>{totalFailed}</h2>
+          <p>Transactions</p>
+          <h2>{totalTransactions}</h2>
         </div>
+
         <div className="stat-card">
           <p>Recovered</p>
           <h2>{recovered}</h2>
         </div>
+
         <div className="stat-card">
           <p>Revenue Recovered</p>
-          <h2>&#8377;{revenueRecovered.toLocaleString('en-IN')}</h2>
+          <h2>
+            &#8377;{revenueRecovered.toLocaleString('en-IN')}
+          </h2>
         </div>
+
         <div className="stat-card">
           <p>Recovery Rate</p>
           <h2>{recoveryRate}%</h2>
@@ -75,8 +96,11 @@ function App() {
       </section>
 
       <section className="main-grid">
+
+        {/* TRANSACTIONS */}
         <div className="panel">
-          <h3>Transactions</h3>
+          <h3>Recovery Queue</h3>
+
           <table>
             <thead>
               <tr>
@@ -87,46 +111,147 @@ function App() {
                 <th>Status</th>
                 <th>Retries</th>
                 <th>Confidence</th>
+                <th>Agent</th>
               </tr>
             </thead>
+
             <tbody>
               {transactions.map(t => (
                 <Fragment key={t._id}>
+
                   <tr className={`status-${t.status}`}>
                     <td>{t.transactionId}</td>
-                    <td>&#8377;{t.amount.toLocaleString('en-IN')}</td>
+
+                    <td>
+                      &#8377;{t.amount.toLocaleString('en-IN')}
+                    </td>
+
                     <td>{t.bankName}</td>
+
                     <td>{t.errorCode}</td>
-                    <td><span className="status-pill">{t.status.replace(/_/g, ' ')}</span></td>
+
+                    <td>
+                      <span className="status-pill">
+                        {t.status.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+
                     <td>{t.retryCount}/3</td>
-                    <td>{t.recoveryScore || '-'}</td>
+
+                    <td>
+                      {t.recoveryScore
+                        ? `${t.recoveryScore}%`
+                        : '-'}
+                    </td>
+
+                    <td>
+                      {t.decisionTrace?.length > 0 ? (
+                        <button
+                          className="trace-btn"
+                          onClick={() =>
+                            setExpandedTrace(
+                              expandedTrace === t._id
+                                ? null
+                                : t._id
+                            )
+                          }
+                        >
+                          {expandedTrace === t._id
+                            ? 'Hide Trace'
+                            : 'View Trace'}
+                        </button>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
                   </tr>
+
+
+                  {/* CUSTOMER MESSAGE */}
                   {t.lastCustomerMessage ? (
                     <tr className="message-row">
-                      <td colSpan="7">
-                        <span className="message-label">Customer message sent:</span> {t.lastCustomerMessage}
+                      <td colSpan="8">
+                        <span className="message-label">
+                          Customer message:
+                        </span>{' '}
+                        {t.lastCustomerMessage}
                       </td>
                     </tr>
                   ) : null}
+
+
+                  {/* AGENT DECISION TRACE */}
+                  {expandedTrace === t._id && (
+                    <tr className="trace-row">
+                      <td colSpan="8">
+
+                        <div className="decision-trace">
+                          <div className="trace-header">
+                             Agent Decision Trace
+                          </div>
+
+                          {t.decisionTrace.map(
+                            (trace, index) => (
+                              <div
+                                className="trace-step"
+                                key={index}
+                              >
+                                <div className="trace-number">
+                                  {index + 1}
+                                </div>
+
+                                <div className="trace-content">
+                                  <strong>
+                                    {trace.step}
+                                  </strong>
+
+                                  <span
+                                    className={`trace-status ${trace.status}`}
+                                  >
+                                    {trace.status}
+                                  </span>
+
+                                  <p>{trace.details}</p>
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+
+                      </td>
+                    </tr>
+                  )}
+
                 </Fragment>
               ))}
             </tbody>
           </table>
         </div>
 
+
+        {/* ACTIVITY LOG */}
         <div className="panel">
           <h3>Live Activity Log</h3>
+
           <div className="activity-log">
             {logs.map((log, i) => (
               <div className="log-entry" key={i}>
                 <span className="log-time">
-                  {new Date(log.timestamp).toLocaleTimeString()}
+                  {new Date(
+                    log.timestamp
+                  ).toLocaleTimeString()}
                 </span>
-                {' '}— <strong>{log.transactionId}</strong>: {log.details}
+
+                {' — '}
+
+                <strong>{log.transactionId}</strong>:
+                {' '}
+                {log.details}
               </div>
             ))}
           </div>
         </div>
+
       </section>
     </div>
   );

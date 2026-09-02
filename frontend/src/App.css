@@ -116,7 +116,7 @@ body {
   border: 1px solid #232B39;
   border-radius: 10px;
   padding: 20px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .panel h3 {
@@ -151,7 +151,8 @@ td {
   font-size: 13px;
 }
 
-td:first-child, td:nth-child(2) {
+td:first-child,
+td:nth-child(2) {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
 }
@@ -170,12 +171,160 @@ tr {
   letter-spacing: 0.03em;
 }
 
-.status-FAILED .status-pill { background: rgba(224, 82, 82, 0.15); color: #E88888; }
-.status-RETRY_SCHEDULED .status-pill { background: rgba(232, 163, 61, 0.15); color: #E8A33D; }
-.status-RETRYING .status-pill { background: rgba(232, 163, 61, 0.15); color: #E8A33D; }
-.status-RECOVERED .status-pill { background: rgba(52, 179, 122, 0.15); color: #4EC98F; }
-.status-PERMANENTLY_FAILED .status-pill { background: rgba(107, 115, 133, 0.15); color: #6B7385; }
-.status-CIRCUIT_BREAKER_BLOCKED .status-pill { background: rgba(107, 115, 133, 0.15); color: #9CA3AF; }
+.status-FAILED .status-pill {
+  background: rgba(224, 82, 82, 0.15);
+  color: #E88888;
+}
+
+.status-ANALYZED .status-pill,
+.status-ACTION_RECOMMENDED .status-pill,
+.status-RECOVERY_IN_PROGRESS .status-pill {
+  background: rgba(232, 163, 61, 0.15);
+  color: #E8A33D;
+}
+
+.status-AWAITING_CONFIRMATION .status-pill {
+  background: rgba(80, 150, 255, 0.15);
+  color: #78A9FF;
+}
+
+.status-RECOVERED .status-pill {
+  background: rgba(52, 179, 122, 0.15);
+  color: #4EC98F;
+}
+
+.status-PERMANENTLY_FAILED .status-pill {
+  background: rgba(107, 115, 133, 0.15);
+  color: #6B7385;
+}
+
+.status-CIRCUIT_BREAKER_BLOCKED .status-pill {
+  background: rgba(107, 115, 133, 0.15);
+  color: #9CA3AF;
+}
+
+/* CUSTOMER MESSAGE */
+
+.message-row td {
+  padding: 10px 16px;
+  background: #10151E;
+  color: #A6ADBB;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.message-label {
+  color: #E8A33D;
+  font-weight: 600;
+}
+
+/* TRACE BUTTON */
+
+.trace-btn {
+  background: transparent;
+  border: 1px solid #394354;
+  color: #A6ADBB;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trace-btn:hover {
+  border-color: #E8A33D;
+  color: #E8A33D;
+}
+
+/* AGENT DECISION TRACE */
+
+.trace-row td {
+  padding: 0;
+  background: #0E131C;
+}
+
+.decision-trace {
+  padding: 20px 24px;
+  border-left: 3px solid #E8A33D;
+}
+
+.trace-header {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: #E8A33D;
+  margin-bottom: 18px;
+}
+
+.trace-step {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #1A202C;
+}
+
+.trace-step:last-child {
+  border-bottom: none;
+}
+
+.trace-number {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #232B39;
+  color: #E8A33D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trace-content {
+  flex: 1;
+}
+
+.trace-content strong {
+  font-size: 12px;
+  color: #E8EAF0;
+  margin-right: 10px;
+}
+
+.trace-content p {
+  color: #8B93A3;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.trace-status {
+  display: inline-block;
+  font-size: 9px;
+  padding: 3px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.trace-status.COMPLETED,
+.trace-status.PASSED {
+  background: rgba(52, 179, 122, 0.15);
+  color: #4EC98F;
+}
+
+.trace-status.STARTED,
+.trace-status.AWAITING {
+  background: rgba(80, 150, 255, 0.15);
+  color: #78A9FF;
+}
+
+.trace-status.BLOCKED,
+.trace-status.REJECTED {
+  background: rgba(224, 82, 82, 0.15);
+  color: #E88888;
+}
+
+/* ACTIVITY LOG */
 
 .activity-log {
   height: 380px;
@@ -195,4 +344,16 @@ tr {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   margin-right: 4px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
