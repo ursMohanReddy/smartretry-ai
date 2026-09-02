@@ -1305,3 +1305,56 @@ td {
 .reset-breaker-btn:hover {
   background: rgba(78, 201, 143, 0.16);
 }
+/* TOAST NOTIFICATIONS */
+
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  min-width: 280px;
+  padding: 14px 18px;
+
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  backdrop-filter: blur(12px);
+
+  animation: slideInToast 0.3s ease;
+}
+
+.toast.success {
+  background: rgba(30, 80, 58, 0.95);
+  border: 1px solid rgba(78, 201, 143, 0.45);
+  color: #D8F5E6;
+}
+
+.toast.error {
+  background: rgba(90, 35, 40, 0.95);
+  border: 1px solid rgba(255, 114, 114, 0.45);
+  color: #FFE0E0;
+}
+
+.toast span {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+@keyframes slideInToast {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

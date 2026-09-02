@@ -10,6 +10,7 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
   const [circuitBreakers, setCircuitBreakers] = useState([]);
 
   const fetchTransactions = async () => {
@@ -51,20 +52,43 @@ function App() {
   }
 };
 
+
 const toggleCircuitBreaker = async (bank, isBlocked) => {
   try {
     const endpoint = isBlocked
       ? `/api/circuit-breaker/${bank}/reset`
       : `/api/circuit-breaker/${bank}`;
 
-    await fetch(`${API_BASE}${endpoint}`, {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
     });
 
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Action failed');
+    }
+
     await fetchCircuitBreakers();
+
+    showToast(
+      isBlocked
+        ? `${bank} circuit breaker reset successfully`
+        : `${bank} circuit breaker tripped successfully`,
+      'success'
+    );
+
   } catch (error) {
-    console.error(error);
+    showToast(error.message || 'Something went wrong', 'error');
   }
+};
+
+const showToast = (message, type = 'success') => {
+  setToast({ message, type });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
 };
 
   useEffect(() => {
@@ -75,22 +99,35 @@ const toggleCircuitBreaker = async (bank, isBlocked) => {
   }, []);
 
   const runRecoveryAgent = async () => {
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      await fetch(`${API_BASE}/api/recover-all`, {
-        method: 'POST',
-      });
+  try {
+    const res = await fetch(`${API_BASE}/api/recover-all`, {
+      method: 'POST',
+    });
 
-      await fetchTransactions();
-      await fetchLogs();
-      await fetchAnalytics();
-    } catch (error) {
-      console.error(error);
+    if (!res.ok) {
+      throw new Error('Recovery Agent failed');
     }
 
-    setLoading(false);
-  };
+    await fetchTransactions();
+    await fetchLogs();
+    await fetchAnalytics();
+
+    showToast(
+      'Recovery Agent completed successfully',
+      'success'
+    );
+
+  } catch (error) {
+    showToast(
+      error.message || 'Recovery Agent failed',
+      'error'
+    );
+  }
+
+  setLoading(false);
+};
 
   const totalTransactions = transactions.length;
 
@@ -114,6 +151,12 @@ const toggleCircuitBreaker = async (bank, isBlocked) => {
 
   return (
     <div className="app">
+            {toast && (
+        <div className={`toast ${toast.type}`}>
+          <span>{toast.type === 'success' ? '✓' : '⚠'}</span>
+          {toast.message}
+        </div>
+      )}
 
       {/* SIDEBAR */}
       <aside className="sidebar">
