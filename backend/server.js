@@ -106,8 +106,8 @@ app.post('/api/recover-all', async (req, res) => {
           ...result,
         });
 
-        // Avoid payment gateway rate limits
         await new Promise(resolve => setTimeout(resolve, 1000));
+
       } catch (error) {
         results.push({
           transactionId: txn.transactionId,
@@ -122,6 +122,7 @@ app.post('/api/recover-all', async (req, res) => {
       processedCount: results.length,
       results,
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -131,8 +132,80 @@ app.post('/api/recover-all', async (req, res) => {
 });
 
 
-// VERIFY ACTUAL PAYMENT RECOVERY
-// Only this endpoint can mark a transaction as RECOVERED
+// Simulated payment gateway webhook
+// In production, Razorpay/Stripe would call this endpoint
+app.post('/api/webhook/payment-success', async (req, res) => {
+  try {
+    const { transactionId, paymentId } = req.body;
+
+    if (!transactionId || !paymentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'transactionId and paymentId are required',
+      });
+    }
+
+    const transaction = await Transaction.findOne({
+      transactionId,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        error: 'Transaction not found',
+      });
+    }
+
+    // Idempotency: don't process the same successful payment twice
+    if (transaction.status === 'RECOVERED') {
+      return res.status(200).json({
+        success: true,
+        message: 'Payment already processed',
+        transaction,
+      });
+    }
+
+    // Only recovery transactions can be confirmed
+    if (transaction.status !== 'AWAITING_CONFIRMATION') {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot confirm payment. Current status: ${transaction.status}`,
+      });
+    }
+
+    // Gateway confirmation
+    transaction.status = 'RECOVERED';
+    transaction.recoveryVerifiedAt = new Date();
+
+    transaction.logs.push({
+      action: 'PAYMENT_GATEWAY_CONFIRMED',
+      details: `Gateway confirmed successful payment. Payment ID: ${paymentId}`,
+    });
+
+    transaction.decisionTrace.push({
+      step: 'PAYMENT_VERIFICATION',
+      status: 'VERIFIED',
+      details: `Payment gateway confirmation received. Payment ID: ${paymentId}. Revenue recovery verified.`,
+    });
+
+    await transaction.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment verified successfully via gateway webhook',
+      transaction,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
+
+
+// Verify actual payment recovery manually (admin fallback)
 app.post('/api/verify/:transactionId', async (req, res) => {
   try {
     const transaction = await Transaction.findOne({
@@ -158,7 +231,13 @@ app.post('/api/verify/:transactionId', async (req, res) => {
 
     transaction.logs.push({
       action: 'RECOVERY_VERIFIED',
-      details: `Payment confirmed. ₹${transaction.amount} successfully recovered.`,
+      details: `Payment confirmed manually. ₹${transaction.amount} successfully recovered.`,
+    });
+
+    transaction.decisionTrace.push({
+      step: 'PAYMENT_VERIFICATION',
+      status: 'VERIFIED',
+      details: 'Payment manually verified through secure recovery verification.',
     });
 
     await transaction.save();
@@ -168,6 +247,7 @@ app.post('/api/verify/:transactionId', async (req, res) => {
       message: 'Payment recovery verified successfully',
       transaction,
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -207,6 +287,7 @@ app.get('/api/audit-log', async (req, res) => {
     );
 
     res.json(allLogs);
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -219,5 +300,5 @@ app.get('/api/audit-log', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () =>
-  console.log(`🚀 SmartRetry AI Backend running on port ${PORT}`)
+  console.log(` SmartRetry AI Backend running on port ${PORT}`)
 );

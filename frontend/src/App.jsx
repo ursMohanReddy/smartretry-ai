@@ -28,9 +28,14 @@ function App() {
 
   const runRecoveryAgent = async () => {
     setLoading(true);
-    await fetch(`${API_BASE}/api/recover-all`, { method: 'POST' });
+
+    await fetch(`${API_BASE}/api/recover-all`, {
+      method: 'POST',
+    });
+
     await fetchTransactions();
     await fetchLogs();
+
     setLoading(false);
   };
 
@@ -50,6 +55,7 @@ function App() {
 
   return (
     <div className="dashboard">
+
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark"></div>
@@ -72,6 +78,7 @@ function App() {
       </header>
 
       <section className="stats">
+
         <div className="stat-card">
           <p>Transactions</p>
           <h2>{totalTransactions}</h2>
@@ -84,21 +91,20 @@ function App() {
 
         <div className="stat-card">
           <p>Revenue Recovered</p>
-          <h2>
-            &#8377;{revenueRecovered.toLocaleString('en-IN')}
-          </h2>
+          <h2>₹{revenueRecovered.toLocaleString('en-IN')}</h2>
         </div>
 
         <div className="stat-card">
           <p>Recovery Rate</p>
           <h2>{recoveryRate}%</h2>
         </div>
+
       </section>
 
       <section className="main-grid">
 
-        {/* TRANSACTIONS */}
         <div className="panel">
+
           <h3>Recovery Queue</h3>
 
           <table>
@@ -123,7 +129,7 @@ function App() {
                     <td>{t.transactionId}</td>
 
                     <td>
-                      &#8377;{t.amount.toLocaleString('en-IN')}
+                      ₹{t.amount.toLocaleString('en-IN')}
                     </td>
 
                     <td>{t.bankName}</td>
@@ -160,15 +166,12 @@ function App() {
                             ? 'Hide Trace'
                             : 'View Trace'}
                         </button>
-                      ) : (
-                        '-'
-                      )}
+                      ) : '-'}
                     </td>
                   </tr>
 
 
-                  {/* CUSTOMER MESSAGE */}
-                  {t.lastCustomerMessage ? (
+                  {t.lastCustomerMessage && (
                     <tr className="message-row">
                       <td colSpan="8">
                         <span className="message-label">
@@ -177,45 +180,46 @@ function App() {
                         {t.lastCustomerMessage}
                       </td>
                     </tr>
-                  ) : null}
+                  )}
 
 
-                  {/* AGENT DECISION TRACE */}
                   {expandedTrace === t._id && (
                     <tr className="trace-row">
                       <td colSpan="8">
 
                         <div className="decision-trace">
+
                           <div className="trace-header">
-                             Agent Decision Trace
+                            Agent Decision Trace
                           </div>
 
-                          {t.decisionTrace.map(
-                            (trace, index) => (
-                              <div
-                                className="trace-step"
-                                key={index}
-                              >
-                                <div className="trace-number">
-                                  {index + 1}
-                                </div>
+                          {t.decisionTrace.map((trace, index) => (
+                            <div
+                              className="trace-step"
+                              key={index}
+                            >
+                              <div className="trace-number">
+                                {index + 1}
+                              </div>
 
-                                <div className="trace-content">
-                                  <strong>
-                                    {trace.step}
-                                  </strong>
+                              <div className="trace-content">
+
+                                <div>
+                                  <strong>{trace.step}</strong>
 
                                   <span
                                     className={`trace-status ${trace.status}`}
                                   >
                                     {trace.status}
                                   </span>
-
-                                  <p>{trace.details}</p>
                                 </div>
+
+                                <p>{trace.details}</p>
+
                               </div>
-                            )
-                          )}
+                            </div>
+                          ))}
+
                         </div>
 
                       </td>
@@ -226,33 +230,34 @@ function App() {
               ))}
             </tbody>
           </table>
+
         </div>
 
 
-        {/* ACTIVITY LOG */}
         <div className="panel">
+
           <h3>Live Activity Log</h3>
 
           <div className="activity-log">
             {logs.map((log, i) => (
               <div className="log-entry" key={i}>
+
                 <span className="log-time">
-                  {new Date(
-                    log.timestamp
-                  ).toLocaleTimeString()}
+                  {new Date(log.timestamp).toLocaleTimeString()}
                 </span>
 
                 {' — '}
 
-                <strong>{log.transactionId}</strong>:
-                {' '}
-                {log.details}
+                <strong>{log.transactionId}</strong>: {log.details}
+
               </div>
             ))}
           </div>
+
         </div>
 
       </section>
+
     </div>
   );
 }
