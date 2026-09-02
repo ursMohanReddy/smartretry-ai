@@ -2,11 +2,12 @@ const Transaction = require('../models/Transaction');
 const { evaluateTransaction } = require('./errorClassifier');
 const { createPaymentLink } = require('./paymentService');
 
-const bankOutageRegistry = {
-  HDFC: { isKilled: false },
-  SBI: { isKilled: false },
-  ICICI: { isKilled: false },
-};
+const {
+  isCircuitBreakerActive,
+  tripCircuitBreaker,
+  resetCircuitBreaker,
+  getCircuitBreakers,
+} = require('./circuitBreakerService');
 
 async function processRecoveryAttempt(transactionId) {
   const transaction = await Transaction.findOne({ transactionId });
@@ -28,7 +29,7 @@ async function processRecoveryAttempt(transactionId) {
   });
 
   // SAFETY CHECK — Circuit breaker
-  if (bankOutageRegistry[bank]?.isKilled) {
+  if (isCircuitBreakerActive(bank)) {
     transaction.status = 'CIRCUIT_BREAKER_BLOCKED';
 
     transaction.decisionTrace.push({
@@ -221,33 +222,6 @@ async function processRecoveryAttempt(transactionId) {
     customerMessage: transaction.lastCustomerMessage,
     decisionTrace: transaction.decisionTrace,
   };
-}
-
-function tripCircuitBreaker(bankName) {
-  if (bankOutageRegistry[bankName]) {
-    bankOutageRegistry[bankName].isKilled = true;
-
-    return `${bankName} circuit breaker tripped. All automated recovery attempts paused.`;
-  }
-
-  return 'Bank not found in registry.';
-}
-function resetCircuitBreaker(bankName) {
-  if (bankOutageRegistry[bankName]) {
-    bankOutageRegistry[bankName].isKilled = false;
-
-    return `${bankName} circuit breaker reset. Automated recovery resumed.`;
-  }
-
-  return 'Bank not found in registry.';
-}
-
-function getCircuitBreakers() {
-  return Object.entries(bankOutageRegistry).map(([bank, data]) => ({
-    bank,
-    status: data.isKilled ? 'OPEN' : 'CLOSED',
-    isBlocked: data.isKilled,
-  }));
 }
 
 module.exports = {

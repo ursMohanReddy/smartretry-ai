@@ -6,6 +6,7 @@
  */
 
 // 1. Error Classifier Mapping
+const { isCircuitBreakerActive } = require('./circuitBreakerService');
 function classifyError(errorCode) {
   switch (errorCode) {
     case 'ERR_BANK_TIMEOUT':
@@ -49,9 +50,19 @@ function getAmountScore(amount) {
 }
 
 function getBankHealthScore(bankName) {
-  const unhealthyBanks = [];
-  if (unhealthyBanks.includes(bankName)) return { factor: 'Bank health', score: 0 };
-  return { factor: 'Bank health', score: 10 };
+  const isBlocked = isCircuitBreakerActive(bankName);
+
+  if (isBlocked) {
+    return {
+      factor: 'Bank health',
+      score: 0
+    };
+  }
+
+  return {
+    factor: 'Bank health',
+    score: 10
+  };
 }
 
 function getTimePatternScore() {
