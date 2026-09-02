@@ -295,6 +295,91 @@ app.get('/api/audit-log', async (req, res) => {
     });
   }
 });
+// Analytics Dashboard Data
+app.get('/api/analytics', async (req, res) => {
+  try {
+    const transactions = await Transaction.find();
+
+    const totalTransactions = transactions.length;
+
+    const recoveredTransactions = transactions.filter(
+      t => t.status === 'RECOVERED'
+    );
+
+    const totalRecovered = recoveredTransactions.length;
+
+    const totalRevenueRecovered = recoveredTransactions.reduce(
+      (sum, t) => sum + t.amount,
+      0
+    );
+
+    const recoveryRate =
+      totalTransactions > 0
+        ? Number(((totalRecovered / totalTransactions) * 100).toFixed(1))
+        : 0;
+
+    // Bank-wise analytics
+    const bankAnalytics = {};
+
+    transactions.forEach(t => {
+      if (!bankAnalytics[t.bankName]) {
+        bankAnalytics[t.bankName] = {
+          bank: t.bankName,
+          total: 0,
+          recovered: 0,
+          revenueRecovered: 0
+        };
+      }
+
+      bankAnalytics[t.bankName].total++;
+
+      if (t.status === 'RECOVERED') {
+        bankAnalytics[t.bankName].recovered++;
+        bankAnalytics[t.bankName].revenueRecovered += t.amount;
+      }
+    });
+
+    const banks = Object.values(bankAnalytics).map(bank => ({
+      ...bank,
+      recoveryRate:
+        bank.total > 0
+          ? Number(((bank.recovered / bank.total) * 100).toFixed(1))
+          : 0
+    }));
+
+    // Error distribution
+    const errorDistribution = {};
+
+    transactions.forEach(t => {
+      errorDistribution[t.errorCode] =
+        (errorDistribution[t.errorCode] || 0) + 1;
+    });
+
+    const errors = Object.entries(errorDistribution).map(
+      ([error, count]) => ({
+        error,
+        count
+      })
+    );
+
+    res.json({
+      overview: {
+        totalTransactions,
+        totalRecovered,
+        totalRevenueRecovered,
+        recoveryRate
+      },
+      banks,
+      errors
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
 
 
 const PORT = process.env.PORT || 5000;
@@ -302,3 +387,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(` SmartRetry AI Backend running on port ${PORT}`)
 );
+
