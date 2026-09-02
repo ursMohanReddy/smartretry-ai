@@ -1134,3 +1134,122 @@ td {
     grid-template-columns: 1fr;
   }
 }
+/* RECOVERY QUEUE */
+
+.recovery-page {
+  animation: fadeIn 0.3s ease;
+}
+
+.recovery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #141A24;
+  border: 1px solid #232B39;
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 16px;
+}
+
+.recovery-header h2 {
+  font-size: 20px;
+  margin-bottom: 7px;
+}
+
+.recovery-header p {
+  font-size: 12px;
+  color: #6B7385;
+}
+
+.queue-count {
+  color: #E8A33D;
+  background: rgba(232, 163, 61, 0.1);
+  border: 1px solid rgba(232, 163, 61, 0.25);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.recovery-table-card {
+  background: #141A24;
+  border: 1px solid #232B39;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.recovery-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.recovery-table th {
+  background: #0F141D;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 10px;
+  color: #6B7385;
+  letter-spacing: 0.5px;
+}
+
+.recovery-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #1D2430;
+  font-size: 12px;
+}
+
+.recovery-table tr:last-child td {
+  border-bottom: none;
+}
+
+.recovery-table tbody tr:hover {
+  background: rgba(232, 163, 61, 0.03);
+}
+
+.queue-txn {
+  font-family: 'JetBrains Mono', monospace;
+  color: #E8A33D;
+}
+
+.queue-error {
+  color: #A6ADBB;
+  font-size: 11px !important;
+}
+
+.score-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: rgba(232, 163, 61, 0.1);
+  color: #E8A33D;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.trace-btn {
+  background: transparent;
+  border: 1px solid #343E4F;
+  color: #C4CBD6;
+  padding: 7px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: 0.2s;
+}
+
+.trace-btn:hover {
+  border-color: #E8A33D;
+  color: #E8A33D;
+  background: rgba(232, 163, 61, 0.08);
+}
+
+@media (max-width: 800px) {
+  .recovery-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

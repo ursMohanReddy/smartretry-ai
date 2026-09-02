@@ -730,15 +730,95 @@ function App() {
 
         {/* PLACEHOLDER PAGES */}
 
-        {activePage === 'Recovery Queue' && (
-          <div className="coming-soon">
-            <h2>Recovery Queue</h2>
-            <p>
-              Full transaction recovery workflow will be available here.
-            </p>
-          </div>
-        )}
+       {activePage === 'Recovery Queue' && (
+  <div className="recovery-page">
 
+    <div className="recovery-header">
+      <div>
+        <h2>Recovery Queue</h2>
+        <p>Monitor and inspect every payment recovery decision.</p>
+      </div>
+
+      <div className="queue-count">
+        {transactions.length} Transactions
+      </div>
+    </div>
+
+    <div className="recovery-table-card">
+
+      <table className="recovery-table">
+        <thead>
+          <tr>
+            <th>TRANSACTION</th>
+            <th>AMOUNT</th>
+            <th>BANK</th>
+            <th>FAILURE</th>
+            <th>STATUS</th>
+            <th>AI SCORE</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {transactions.map((t) => (
+            <tr key={t._id}>
+
+              <td>
+                <strong className="queue-txn">
+                  {t.transactionId}
+                </strong>
+              </td>
+
+              <td>
+                ₹{t.amount.toLocaleString('en-IN')}
+              </td>
+
+              <td>{t.bankName}</td>
+
+              <td className="queue-error">
+                {t.errorCode}
+              </td>
+
+              <td>
+                <span className={`status-pill ${t.status}`}>
+                  {t.status.replace(/_/g, ' ')}
+                </span>
+              </td>
+
+              <td>
+                <div className="score-box">
+                  {t.recoveryScore ?? '-'}
+                </div>
+              </td>
+
+              <td>
+                <button
+                  className="trace-btn"
+                  onClick={() => {
+                    alert(
+                      `Decision Trace\n\n` +
+                      `Transaction: ${t.transactionId}\n` +
+                      `Failure: ${t.errorCode}\n` +
+                      `AI Recovery Score: ${t.recoveryScore ?? 'Not calculated'}\n` +
+                      `Retries: ${t.retryCount || 0}/3\n` +
+                      `Status: ${t.status}\n\n` +
+                      `Decision history is available in the Audit Log.`
+                    );
+                  }}
+                >
+                  View Trace →
+                </button>
+              </td>
+
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+    </div>
+
+  </div>
+)}
        {activePage === 'Audit Log' && (
   <div className="audit-page">
 
